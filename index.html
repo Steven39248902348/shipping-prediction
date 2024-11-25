@@ -1,1 +1,38 @@
- 
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发货预测系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>发货预测系统</h1>
+        
+        <div class="upload-section">
+            <label for="fileUpload" class="upload-label">
+                选择Excel文件
+                <input type="file" id="fileUpload" accept=".xlsx, .xls" />
+            </label>
+        </div>
+
+        <div id="preview" class="preview-section">
+            <h2>数据预览</h2>
+            <table id="dataTable"></table>
+        </div>
+
+        <div id="results" class="results-section">
+            <h2>预测结果</h2>
+            <div id="predictionResult"></div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>处理中...</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
