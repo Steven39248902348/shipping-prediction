@@ -3,38 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>发货预测系统</title>
+    <title>库存管理系统</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>发货预测系统</h1>
-        
-        <div class="upload-section">
-            <label for="fileUpload" class="upload-label">
-                选择Excel文件
-                <input type="file" id="fileUpload" accept=".xlsx, .xls" />
-            </label>
-            <button id="clearButton" onclick="clearCurrentData()" class="clear-button" style="display: none;">
-                清除当前Excel表格
-            </button>
-        </div>
+        <header class="main-header">
+            <h1>库存管理系统</h1>
+            <div class="header-controls">
+                <input type="file" id="fileUpload" accept=".xlsx, .xls" style="display: none;" />
+                <button id="dynamicButton" class="primary-button">
+                    <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    导入Excel
+                </button>
+            </div>
+        </header>
 
-        <div id="preview" class="preview-section">
-            <h2>数据预览</h2>
-            <table id="dataTable"></table>
-        </div>
+        <div class="content-wrapper">
+            <div class="settings-card card">
+                <div class="card-header">
+                    <h2>基础设置</h2>
+                </div>
+                <div class="settings-content">
+                    <div class="setting-item">
+                        <label for="targetDays">目标在途库存天数</label>
+                        <div class="setting-control">
+                            <input type="number" id="targetDays" min="1" max="180" value="60" />
+                            <span class="help-text">建议值：45-90天</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div id="loading" class="loading" style="display: none;">
-            <div class="spinner"></div>
-            <p>处理中...</p>
-        </div>
+            <div class="filter-card card">
+                <div class="card-header">
+                    <h2>国家筛选</h2>
+                </div>
+                <div class="country-buttons" id="countryButtons">
+                    <!-- 国家按钮将通过JavaScript动态填充 -->
+                </div>
+            </div>
 
-        <div id="fileHistory" class="file-history-section">
-            <!-- 这里会通过JavaScript动态填充内容 -->
+            <div class="data-card card">
+                <div class="card-header">
+                    <span id="currentFileName" class="current-file-name">请导入Excel文件</span>
+                </div>
+                <div class="table-container">
+                    <table id="dataTable"></table>
+                </div>
+            </div>
+
+            <div class="history-card card">
+                <div class="card-header">
+                    <h2>历史记录</h2>
+                </div>
+                <div id="fileHistory" class="history-content">
+                    <!-- 这里会通过JavaScript动态填充内容 -->
+                </div>
+            </div>
         </div>
     </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>正在处理数据...</p>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html> 
+
