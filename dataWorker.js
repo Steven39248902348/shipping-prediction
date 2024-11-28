@@ -69,8 +69,7 @@ self.onmessage = function(e) {
             '转运中': titleRow.findIndex(title => title && title.includes('转运中')),
             '在途库存-已创建': titleRow.findIndex(title => title && title.includes('已创建')),
             '在途库存-已发货': titleRow.findIndex(title => title && title.includes('已发货')),
-            '在途库存-接收中': titleRow.findIndex(title => title && title.includes('接收中')),
-            '销量-上周': titleRow.findIndex(title => title && title.includes('上周') && title.includes('销量'))
+            '在途库存-接收中': titleRow.findIndex(title => title && title.includes('接收中'))
         };
 
         // 调试信息
@@ -121,7 +120,7 @@ self.onmessage = function(e) {
                     if (cell && cell.v !== undefined && cell.v !== null && cell.v !== '') {
                         // 确保数值类型的列被正确解析
                         if (['预估可售天数', '可售库存', '转运中', '在途库存-已创建', 
-                             '在途库存-已发货', '在途库存-接收中', '销量-上周'].includes(name)) {
+                             '在途库存-已发货', '在途库存-接收中'].includes(name)) {
                             // 处理数值
                             if (typeof cell.v === 'number') {
                                 row[name] = cell.v;
@@ -137,7 +136,7 @@ self.onmessage = function(e) {
                         }
                         hasData = true;
                     } else {
-                        row[name] = name.includes('库存') || name.includes('销量') || name.includes('天数') ? 0 : null;
+                        row[name] = name.includes('库存') || name.includes('天数') ? 0 : null;
                     }
                 }
             }
@@ -146,7 +145,7 @@ self.onmessage = function(e) {
             if (hasData && row['ASIN'] && row['产品标题']) {
                 // 确保数值字段为数字类型
                 ['预估可售天数', '可售库存', '转运中', '在途库存-已创建', 
-                 '在途库存-已发货', '在途库存-接收中', '销量-上周'].forEach(field => {
+                 '在途库存-已发货', '在途库存-接收中'].forEach(field => {
                     row[field] = typeof row[field] === 'number' ? row[field] : 0;
                 });
                 
