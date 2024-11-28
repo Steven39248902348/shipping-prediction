@@ -11,12 +11,12 @@ const baseHeaders = [
     '产品标题',
     '账号',
     '预估可售天数',
+    '平均每天出单',
     '可售库存',
     '转运中',
     '在途库存-已创建',
     '在途库存-已发货',
     '在途库存-接收中',
-    '平均每天出单',
     '在途库存可售天数',
     '需要补货数量'
 ];
@@ -32,14 +32,13 @@ let sortState = {
 
 // 添加数字列定义
 const numericColumns = [
-    '销量-上周',
     '预估可售天数',
+    '平均每天出单',
     '可售库存',
     '转运中',
     '在途库存-已创建',
     '在途库存-已发货',
     '在途库存-接收中',
-    '平均每天出单',
     '在途库存可售天数',
     '需要补货数量'
 ];
@@ -56,6 +55,9 @@ let originalData = null;
 // 将 showPage 函数移到全局作用域
 let workingData = null; // 添加全局变量
 const itemsPerPage = 20; // 移到全局作用域
+
+// 在文件开头添加导出按钮引用
+const exportButton = document.getElementById('exportButton');
 
 function showPage(page) {
     if (!workingData) return;
@@ -145,13 +147,40 @@ document.addEventListener('DOMContentLoaded', () => {
         targetDays = parseInt(targetDaysInput.value) || 60;
         localStorage.setItem('targetDays', targetDays.toString());
     });
+
+    // 控制导出按钮的显示
+    if (hasData) {
+        exportButton.style.display = 'flex';
+    }
 });
 
 // 保存数据到localStorage
 function saveToLocalStorage(data, fileName, updateHistory = true) {
     try {
+        // 确保保存完整数据
+        const fullData = data.map(row => {
+            const newRow = { ...row };
+            // 确保计算字段被保存
+            if (numericColumns.includes('平均每天出单')) {
+                newRow['平均每天出单'] = calculateAverageDailySales(row);
+            }
+            if (numericColumns.includes('在途库存可售天数')) {
+                const avgDailySales = newRow['平均每天出单'] || calculateAverageDailySales(row);
+                const created = parseFloat(String(row['在途库存-已创建']).replace(/,/g, '')) || 0;
+                const shipped = parseFloat(String(row['在途库存-已发货']).replace(/,/g, '')) || 0;
+                newRow['在途库存可售天数'] = avgDailySales > 0 ? (created + shipped) / avgDailySales : 0;
+            }
+            if (numericColumns.includes('需要补货数量')) {
+                const estimatedDays = parseFloat(String(row['预估可售天数']).replace(/,/g, '')) || 0;
+                const avgDailySales = newRow['平均每天出单'] || calculateAverageDailySales(row);
+                const transitDays = newRow['在途库存可售天数'] || 0;
+                newRow['需要补货数量'] = Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
+            }
+            return newRow;
+        });
+
         // 保存当前数据
-        localStorage.setItem('currentData', JSON.stringify(data));
+        localStorage.setItem('currentData', JSON.stringify(fullData));
         localStorage.setItem('targetDays', targetDays.toString());
         
         // 只在需要时更新文件历史
@@ -162,18 +191,16 @@ function saveToLocalStorage(data, fileName, updateHistory = true) {
             // 检查是否已存在相同文件名的记录
             const existingIndex = history.findIndex(item => item.fileName === fileName);
             if (existingIndex !== -1) {
-                // 如果存在，更新现有记录
                 history[existingIndex] = {
                     fileName,
                     timestamp,
-                    data
+                    data: fullData
                 };
             } else {
-                // 如果不存在，添加新记录
                 history.unshift({
                     fileName,
                     timestamp,
-                    data
+                    data: fullData
                 });
                 
                 // 只保留最近的5个文件
@@ -394,7 +421,7 @@ function processDataInWorker(sheet, fileName) {
             originalData = [...processedData];
             filteredData = null;
 
-            // 然后保存到本地存储
+            // 然后保存到本地存
             saveToLocalStorage(processedData, fileName);
             
             // 显示数据
@@ -462,6 +489,9 @@ function displayPreview(data) {
     
     // 显示数据
     displayData(data);
+
+    // 显示导出按钮
+    exportButton.style.display = 'flex';
 }
 
 // 修改更新国家项的函数
@@ -600,14 +630,6 @@ function updateTableContent(page) {
                 value = value.length > 20 ? value.substring(0, 20) + '...' : value;
                 td.style.textAlign = 'left'; // 文本左对齐
             }
-            // 处理账号列，只显示国家部分
-            else if (header === '账号' && value) {
-                const match = String(value).match(/-([^-]+)$/);
-                if (match) {
-                    value = match[1].trim();
-                }
-                td.style.textAlign = 'left'; // 文本左对齐
-            }
             // 处理 ASIN 列
             else if (header === 'ASIN') {
                 td.style.textAlign = 'left'; // 文本左对齐
@@ -627,7 +649,7 @@ function updateTableContent(page) {
                 else if (header === '在途库存可售天数') {
                     const avgDailySales = row['平均每天出单'] || calculateAverageDailySales(row);
                     const created = parseFloat(String(row['在途库存-已创建']).replace(/,/g, '')) || 0;
-                    const shipped = parseFloat(String(row['���途库存-已发货']).replace(/,/g, '')) || 0;
+                    const shipped = parseFloat(String(row['在途库存-已发货']).replace(/,/g, '')) || 0;
                     
                     value = avgDailySales > 0 ? (created + shipped) / avgDailySales : 0;
                     row[header] = value; // 保存计算结果
@@ -643,12 +665,28 @@ function updateTableContent(page) {
 
                 // 设置数字单元格的显示格式
                 td.dataset.type = 'number';
-                if (header === '预估可售天数' || header === '平均每天出单' || header === '在途库存可售天数') {
+                if (header === '预估可售天数') {
+                    // 显示整数
+                    td.textContent = Math.round(value);
+                    
+                    // 添加预警颜色
+                    if (value < 30) {
+                        td.style.color = '#ff4d4f'; // 红色预警
+                    } else if (value < 50) {
+                        td.style.color = '#faad14'; // 橙色预警
+                    }
+                } else if (header === '需要补货数量') {
+                    td.textContent = Math.round(value).toLocaleString('zh-CN');
+                    // 如果需要补货数量大于0，显示红色
+                    if (value > 0) {
+                        td.style.color = '#ff4d4f';
+                    }
+                } else if (header === '平均每天出单' || header === '在途库存可售天数') {
                     td.textContent = value.toFixed(1);
                 } else {
                     td.textContent = Math.round(value).toLocaleString('zh-CN');
                 }
-                td.style.textAlign = 'left'; // 确保数字单元格左对齐
+                td.style.textAlign = 'left';
             } else {
                 td.textContent = value || '-';
             }
@@ -753,128 +791,113 @@ function displayData(data) {
     const existingRows = table.querySelectorAll('tr:not(:first-child)');
     existingRows.forEach(row => row.remove());
 
+    // 删除旧的分页
     const oldPagination = document.querySelector('.pagination');
     if (oldPagination) {
         oldPagination.remove();
     }
-    
-    // 更新 headers，检查是否包含销量-上周列
-    headers = workingData[0] && workingData[0].hasOwnProperty('销量-上周') ? 
-        ['ASIN', '产品标题', '账号', '销量-上周', ...baseHeaders.slice(3)] : 
-        [...baseHeaders];
-    
-    // 修改分页设置
-    const itemsPerPage = 20; // 从50改为20
-    const totalPages = Math.ceil(workingData.length / itemsPerPage);
-    let currentPage = 1;
 
-    function showPage(page) {
-        console.log('开始显示页面:', page);
-        console.log('当前排序状态:', sortState);
-
-        const start = (page - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const pageData = workingData.slice(start, end);
-
-        // 如果表格不存在，创建表格结构
-        if (!table.querySelector('tr')) {
-            // 创建表头行
-            let headerRow = document.createElement('tr');
-            
-            // 添加表头
-            headers.forEach(header => {
-                const th = document.createElement('th');
-                th.textContent = header;
-                
-                if (numericColumns.includes(header)) {
-                    th.style.cursor = 'pointer';
-                    th.dataset.column = header; // 添加数据属性以标识列
-                    
-                    th.addEventListener('click', () => {
-                        // 检查数据是否存在
-                        if (!originalData) {
-                            console.warn('没有原始数据');
-                            return;
-                        }
-
-                        // 移除所有表头的排序指示器
-                        headerRow.querySelectorAll('th').forEach(th => {
-                            th.textContent = th.dataset.column;
-                        });
-                        
-                        // 更新排序状态
-                        if (sortState.column === header) {
-                            if (sortState.direction === 'asc') {
-                                sortState.direction = 'desc';
-                            } else if (sortState.direction === 'desc') {
-                                // 第三次点击，重置排序状态和数据顺序
-                                sortState.column = null;
-                                sortState.direction = 'desc';
-                                th.textContent = header; // 移除排序指示器
-                                
-                                // 恢复原始数据顺序
-                                const activeCountryButtons = Array.from(document.querySelectorAll('.country-button.active'));
-                                const selectedCountries = new Set(
-                                    activeCountryButtons
-                                        .map(btn => btn.dataset.country)
-                                        .filter(c => c !== 'all')
-                                );
-
-                                // 如果选择了"全部"或没有选择任何国家，使用原始数据
-                                if (selectedCountries.size === 0 || activeCountryButtons.some(btn => btn.dataset.country === 'all')) {
-                                    workingData = [...originalData];
-                                    filteredData = null;
-                                } else {
-                                    // 否则，根据选中的国家过滤原始数据
-                                    workingData = originalData.filter(row => {
-                                        if (!row.账号) return false;
-                                        const match = String(row.账号).match(/-([^-]+)$/);
-                                        return match && selectedCountries.has(match[1].trim());
-                                    });
-                                    filteredData = workingData;
-                                }
-                                
-                                updateTableContent(1);
-                                return;
-                            }
-                        } else {
-                            sortState.column = header;
-                            sortState.direction = 'asc';
-                        }
-                        
-                        // 添加排序指示器
-                        const arrow = sortState.direction === 'asc' ? ' ↑' : ' ↓';
-                        th.textContent = header + arrow;
-                        
-                        // 排序数据
-                        if (sortState.column) {
-                            workingData = [...workingData].sort((a, b) => {
-                                const valueA = parseFloat(String(a[header]).replace(/,/g, '')) || 0;
-                                const valueB = parseFloat(String(b[header]).replace(/,/g, '')) || 0;
-                                return sortState.direction === 'asc' ? valueA - valueB : valueB - valueA;
-                            });
-                        }
-
-                        // 更新过滤状态
-                        filteredData = workingData !== originalData ? workingData : null;
-                        updateTableContent(1);
-                    });
-                }
-                
-                headerRow.appendChild(th);
-            });
-            
-            table.appendChild(headerRow);
-        }
-
-        // 更新表格内容
-        updateTableContent(page);
-    }
-
-    // 创建分页控件
+    // 创建新的分页容器
     const paginationDiv = document.createElement('div');
     paginationDiv.className = 'pagination';
     table.parentElement.appendChild(paginationDiv);
+    
+    // 直接使用 baseHeaders
+    headers = [...baseHeaders];
+    
+    // 如果表格不存在，创建表格结构
+    if (!table.querySelector('tr')) {
+        // 创建表头行
+        let headerRow = document.createElement('tr');
+        
+        // 添加表头
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            
+            if (numericColumns.includes(header)) {
+                th.style.cursor = 'pointer';
+                th.dataset.column = header;
+                
+                th.addEventListener('click', () => {
+                    // 检查数据是否存在
+                    if (!workingData) {
+                        console.warn('没有数据可排序');
+                        return;
+                    }
+
+                    // 移除所有数字列表头的排序指示器
+                    const allHeaders = table.querySelectorAll('th');
+                    allHeaders.forEach(otherTh => {
+                        if (numericColumns.includes(otherTh.dataset.column)) {
+                            otherTh.textContent = otherTh.dataset.column;
+                        }
+                    });
+                    
+                    // 更新排序状态
+                    if (sortState.column === header) {
+                        if (sortState.direction === 'asc') {
+                            sortState.direction = 'desc';
+                        } else if (sortState.direction === 'desc') {
+                            // 第三次点击，重置排序状态和数据顺序
+                            sortState.column = null;
+                            sortState.direction = 'desc';
+                            th.textContent = header;
+                            
+                            // 恢复原始数据顺序
+                            workingData = filteredData ? [...filteredData] : [...originalData];
+                            
+                            // 更新表格显示
+                            showPage(1);
+                            return;
+                        }
+                    } else {
+                        sortState.column = header;
+                        sortState.direction = 'asc';
+                    }
+                    
+                    // 添加排序指示器
+                    const arrow = sortState.direction === 'asc' ? ' ↑' : ' ↓';
+                    th.textContent = header + arrow;
+                    
+                    // 对整个数据集进行排序
+                    workingData.sort((a, b) => {
+                        let valueA, valueB;
+                        
+                        // 特殊处理需要计算的列
+                        if (header === '平均每天出单') {
+                            valueA = calculateAverageDailySales(a);
+                            valueB = calculateAverageDailySales(b);
+                        } else if (header === '在途库存可售天数') {
+                            valueA = calculateTransitDays(a);
+                            valueB = calculateTransitDays(b);
+                        } else if (header === '需要补货数量') {
+                            valueA = calculateReplenishmentQuantity(a);
+                            valueB = calculateReplenishmentQuantity(b);
+                        } else {
+                            // 普通数字列
+                            valueA = parseFloat(String(a[header]).replace(/,/g, '')) || 0;
+                            valueB = parseFloat(String(b[header]).replace(/,/g, '')) || 0;
+                        }
+                        
+                        return sortState.direction === 'asc' ? valueA - valueB : valueB - valueA;
+                    });
+
+                    // 更新过滤状态
+                    if (filteredData) {
+                        filteredData = [...workingData];
+                    }
+
+                    // 更新表格显示，从第一页开始
+                    showPage(1);
+                });
+            }
+            
+            headerRow.appendChild(th);
+        });
+        
+        table.appendChild(headerRow);
+    }
 
     // 显示第一页数据
     showPage(1);
@@ -920,6 +943,9 @@ function clearAllData() {
 
     // 清除文件名显示
     updateFileName('');
+
+    // 隐藏导出按钮
+    exportButton.style.display = 'none';
 }
 
 // 修改文件名更新的相关函数
@@ -928,4 +954,157 @@ function updateFileName(fileName) {
     if (currentFileName) {
         currentFileName.textContent = fileName || '';
     }
+}
+
+// 添加导出功能
+exportButton.addEventListener('click', exportToExcel);
+
+// 添加导出Excel功能
+function exportToExcel() {
+    if (!workingData || workingData.length === 0) {
+        alert('没有可导出的数据');
+        return;
+    }
+    
+    // 准备导出数据，确保所有计算字段都被正确计算
+    const exportData = workingData.map(row => {
+        // 创建新对象以避免修改原始数据
+        const newRow = { ...row };
+        
+        // 重新计算平均每天出单
+        newRow['平均每天出单'] = calculateAverageDailySales(newRow);
+        
+        // 重新计算在途库存可售天数
+        const avgDailySales = newRow['平均每天出单'];
+        const created = parseFloat(String(newRow['在途库存-已创建']).replace(/,/g, '')) || 0;
+        const shipped = parseFloat(String(newRow['在途库存-已发货']).replace(/,/g, '')) || 0;
+        newRow['在途库存可售天数'] = avgDailySales > 0 ? (created + shipped) / avgDailySales : 0;
+        
+        // 重新计算需要补货数量
+        const estimatedDays = parseFloat(String(newRow['预估可售天数']).replace(/,/g, '')) || 0;
+        const transitDays = newRow['在途库存可售天数'];
+        newRow['需要补货数量'] = Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
+
+        // 格式化数据用于导出
+        const exportRow = {};
+        headers.forEach(header => {
+            let value = newRow[header];
+            
+            // 处理数字格式
+            if (numericColumns.includes(header)) {
+                if (header === '预估可售天数') {
+                    value = Math.round(value);
+                } else if (header === '需要补货数量') {
+                    value = Math.round(value);
+                } else if (header === '平均每天出单' || header === '在途库存可售天数') {
+                    value = parseFloat(value).toFixed(1);
+                } else {
+                    value = Math.round(value);
+                }
+            }
+            exportRow[header] = value;
+        });
+        return exportRow;
+    });
+
+    // 创建工作表
+    const ws = XLSX.utils.json_to_sheet(exportData, { header: headers });
+
+    // 设置列宽
+    const colWidths = {
+        'ASIN': 15,
+        '产品标题': 40,
+        '账号': 20
+    };
+    
+    ws['!cols'] = headers.map(header => ({
+        wch: colWidths[header] || 12
+    }));
+
+    // 添加样式
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    
+    // 设置表头样式
+    headers.forEach((header, colIndex) => {
+        const headerCell = XLSX.utils.encode_cell({r: 0, c: colIndex});
+        if (!ws[headerCell].s) ws[headerCell].s = {};
+        ws[headerCell].s = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: "F0F0F0" } }
+        };
+    });
+
+    // 设置数据行样式
+    for (let R = range.s.r + 1; R <= range.e.r; R++) {
+        // 获取预估可售天数列
+        const estimatedDaysCell = XLSX.utils.encode_cell({
+            r: R, 
+            c: headers.indexOf('预估可售天数')
+        });
+        
+        if (ws[estimatedDaysCell]) {
+            const value = parseFloat(ws[estimatedDaysCell].v);
+            if (!ws[estimatedDaysCell].s) ws[estimatedDaysCell].s = {};
+            
+            if (value < 30) {
+                ws[estimatedDaysCell].s = { font: { color: { rgb: "FF0000" } } };
+            } else if (value < 50) {
+                ws[estimatedDaysCell].s = { font: { color: { rgb: "FFA500" } } };
+            }
+        }
+
+        // 获取需要补货数量列
+        const replenishCell = XLSX.utils.encode_cell({
+            r: R, 
+            c: headers.indexOf('需要补货数量')
+        });
+        
+        if (ws[replenishCell]) {
+            const value = parseFloat(ws[replenishCell].v);
+            if (value > 0) {
+                if (!ws[replenishCell].s) ws[replenishCell].s = {};
+                ws[replenishCell].s = { font: { color: { rgb: "FF0000" } } };
+            }
+        }
+    }
+
+    // 创建工作簿并添加带样式的工作表
+    const wb = {
+        SheetNames: ['库存数据'],
+        Sheets: {
+            '库存数据': ws
+        }
+    };
+
+    // 设置导出选项
+    const wopts = {
+        bookType: 'xlsx',
+        bookSST: false,
+        type: 'binary',
+        cellStyles: true
+    };
+
+    // 生成文件名
+    const date = new Date();
+    const timestamp = `${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
+    const filename = `库存数据_${timestamp}.xlsx`;
+
+    // 导出文件
+    XLSX.writeFile(wb, filename, wopts);
+    updateTableContent(1);
+}
+
+// 将辅助函数移到文件的合适位置，在全局作用域中定义
+function calculateTransitDays(row) {
+    const avgDailySales = calculateAverageDailySales(row);
+    const created = parseFloat(String(row['在途库存-已创建']).replace(/,/g, '')) || 0;
+    const shipped = parseFloat(String(row['在途库存-已发货']).replace(/,/g, '')) || 0;
+    return avgDailySales > 0 ? (created + shipped) / avgDailySales : 0;
+}
+
+function calculateReplenishmentQuantity(row) {
+    const estimatedDays = parseFloat(String(row['预估可售天数']).replace(/,/g, '')) || 0;
+    const avgDailySales = calculateAverageDailySales(row);
+    const transitDays = calculateTransitDays(row);
+    return Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
 } 
