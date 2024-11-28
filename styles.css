@@ -1,3 +1,15 @@
+:root {
+    --primary-color: #2196F3;
+    --primary-hover: #1976D2;
+    --background-color: #f5f7fa;
+    --card-background: #ffffff;
+    --border-color: #e0e4e8;
+    --text-primary: #2c3e50;
+    --text-secondary: #606f7b;
+    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --radius: 8px;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,97 +17,337 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    background-color: #f4f4f4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    line-height: 1.5;
 }
 
 .container {
-    max-width: 98vw;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 10px;
+    padding: 20px;
 }
 
-h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 15px;
-    font-size: 18px;
-}
-
-.upload-section {
-    text-align: center;
-    margin-bottom: 30px;
+/* 头部样式 */
+.main-header {
     display: flex;
-    justify-content: center;
-    gap: 20px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--card-background);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.main-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* 按钮样式 */
+.primary-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.primary-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.button-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* 卡片通用样式 */
+.card {
+    background: var(--card-background);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
 }
 
-.upload-label {
-    display: inline-block;
-    padding: 12px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 4px;
+.card-header h2 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 设置卡片样式 */
+.settings-content {
+    padding: 20px;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.setting-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.setting-control input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    width: 100px;
+}
+
+.help-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* 国家筛选按钮样式 */
+.country-buttons {
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.country-button {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: white;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.2s ease;
 }
 
-.upload-label:hover {
-    background-color: #45a049;
+.country-button:hover {
+    background: #f8f9fa;
 }
 
-input[type="file"] {
-    display: none;
+.country-button.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
-.preview-section {
-    background-color: white;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin: 10px 0;
+/* 表格样式 */
+.table-container {
+    overflow-x: auto;
+    padding: 0;
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
-    font-size: 11px;
-}
-
-th, td {
-    padding: 4px 4px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: auto;
 }
 
 th {
-    background-color: #f8f8f8;
+    background: #f8f9fa;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 12px 16px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-bottom: 2px solid var(--border-color);
+    white-space: normal;
+    min-width: 80px;
 }
 
-/* 添加加载动画样式 */
+th[data-full-title] {
+    cursor: help;
+}
+
+th[data-full-title]:hover::after {
+    content: attr(data-full-title);
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+td[data-type="number"] {
+    text-align: right;
+}
+
+/* 分页样式 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: #fff;
+    border-top: 1px solid var(--border-color);
+}
+
+.page-button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: white;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.page-button:hover {
+    background: #f8f9fa;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.page-button.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.total-records {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-left: 16px;
+}
+
+/* 历史记录样式 */
+.history-content {
+    padding: 0;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+}
+
+.history-item:hover {
+    background-color: #f8f9fa;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.file-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.file-time {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.history-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.history-button {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: white;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.history-button:hover {
+    background: #f8f9fa;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.history-button.delete {
+    color: #dc3545;
+}
+
+.history-button.delete:hover {
+    background: #fff5f5;
+    border-color: #dc3545;
+}
+
+/* 加载动画样式 */
 .loading {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.8);
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     z-index: 1000;
 }
 
 .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #4CAF50;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    margin-bottom: 16px;
 }
 
 @keyframes spin {
@@ -103,291 +355,159 @@ th {
     100% { transform: rotate(360deg); }
 }
 
-/* 添加表格样式 */
-.preview-section {
-    overflow-x: auto;  /* 允许表格横向滚动 */
-    padding: 8px;
-    margin: 8px 0;
+/* 添加和修改文件名显示样式 */
+.current-file-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
 }
 
-table {
-    min-width: 100%;
-    white-space: nowrap;  /* 防止文本换行 */
+/* 当没有文件时的样式 */
+.current-file-name:empty::before {
+    content: '请导入Excel文件';
+    color: var(--text-secondary);
+    font-weight: normal;
 }
 
-td, th {
-    max-width: 300px;
+/* 添加以下CSS样式来使表格排序更平滑 */
+#dataTable tr {
+    transition: background-color 0.2s ease;
+}
+
+#dataTable td {
+    transition: all 0.2s ease;
+}
+
+/* 添加表格行悬停效果 */
+#dataTable tr:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 优化表格布局 */
+#dataTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#dataTable th, #dataTable td {
     overflow: hidden;
-    text-overflow: ellipsis;  /* 超长文本显示省略号 */
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* 表格样式优化 */
-.preview-section {
+/* 修改表格布局相关样式 */
+.table-container {
     overflow-x: auto;
-    margin: 20px 0;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 0;
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: auto;
 }
 
-th {
+/* 对不同列设置不同的宽度和处理方式 */
+#dataTable th, #dataTable td {
+    padding: 12px 16px;
+}
+
+/* ASIN列固定宽度 */
+#dataTable th:nth-child(1),
+#dataTable td:nth-child(1) {
+    width: 120px;
+    white-space: nowrap;
+}
+
+/* 产品标题列允许换行 */
+#dataTable th:nth-child(2),
+#dataTable td:nth-child(2) {
+    min-width: 200px;
+    max-width: 400px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* 账号列固定宽度 */
+#dataTable th:nth-child(3),
+#dataTable td:nth-child(3) {
+    width: 80px;
+    white-space: nowrap;
+}
+
+/* 数字列固定宽度，右对齐 */
+#dataTable td[data-type="number"] {
+    width: 100px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* 表格行动画效果 */
+#dataTable tr {
+    transition: background-color 0.2s ease;
+}
+
+/* 表格行悬停效果 */
+#dataTable tr:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 表头样式 */
+#dataTable th {
+    background: #f8f9fa;
     position: sticky;
     top: 0;
-    background: #f8f8f8;
-    z-index: 10;
-    padding: 12px 8px;
-    border-bottom: 2px solid #ddd;
-}
-
-td {
-    padding: 10px 8px;
-    border-bottom: 1px solid #eee;
-}
-
-/* 分页控件样式 */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 3px;
-    margin: 8px 0;
-    flex-wrap: wrap;
-}
-
-.page-button {
-    padding: 2px 6px;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 11px;
-}
-
-.page-button:hover {
-    background: #f0f0f0;
-}
-
-.page-button.active {
-    background: #4CAF50;
-    color: white;
-    border-color: #4CAF50;
-}
-
-.total-records {
-    margin-left: 20px;
-    color: #666;
-    font-size: 11px;
-}
-
-/* 响应式布局 */
-@media (max-width: 1200px) {
-    table {
-        font-size: 13px;
-    }
-    
-    th, td {
-        padding: 8px 6px;
-    }
-}
-
-@media (max-width: 768px) {
-    .pagination {
-        font-size: 13px;
-    }
-    
-    .page-button {
-        padding: 4px 8px;
-    }
-}
-
-/* 文件历史记录样式 */
-.file-history-section {
-    background-color: white;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin: 10px 0;
-}
-
-.history-list {
-    margin-top: 15px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.history-item {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.history-item:last-child {
-    border-bottom: none;
-}
-
-.file-name {
-    flex: 2;
-    font-weight: bold;
-}
-
-.file-time {
-    flex: 1;
-    color: #666;
-    font-size: 0.9em;
-}
-
-.history-item button {
-    margin-left: 10px;
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.history-item button:hover {
-    background: #f0f0f0;
-}
-
-.history-item button:first-of-type {
-    color: #4CAF50;
-    border-color: #4CAF50;
-}
-
-.history-item button:last-of-type {
-    color: #f44336;
-    border-color: #f44336;
-}
-
-/* 添加历史记录头部样式 */
-.history-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.clear-button {
-    padding: 12px 20px;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 14px;
-}
-
-.clear-button:hover {
-    background-color: #d32f2f;
-}
-
-/* 修改表头样式 */
-.header-content {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 11px;
-}
-
-/* 排序指示器样式 */
-.sort-indicator {
-    width: 12px;
-    height: 12px;
-    margin-left: 4px;
-}
-
-/* 根据排序状态显示不同的指示器 */
-th[data-sort-state="asc"] .sort-indicator::after {
-    content: '↑';
-    color: #4CAF50;
-}
-
-th[data-sort-state="desc"] .sort-indicator::after {
-    content: '↓';
-    color: #4CAF50;
-}
-
-th[data-sort-state="none"] .sort-indicator::after {
-    content: '';
-}
-
-/* 移除旧的排序箭头样式 */
-.sort-arrows,
-.sort-arrow-up,
-.sort-arrow-down {
-    display: none;
-}
-
-/* 表头悬停效果 */
-th:hover {
-    background-color: #eef1f5;
-}
-
-th[data-sort-state="asc"],
-th[data-sort-state="desc"] {
-    background-color: #f0f7f0;
-}
-
-/* 移除筛选控件相关样式 */
-.filter-controls {
-    display: none;
-}
-
-/* 修改列宽度比例 */
-th:nth-child(1), td:nth-child(1) { /* ASIN列 */
-    width: 7%;
+    z-index: 1;
+    font-weight: 500;
+    white-space: normal;
+    word-wrap: break-word;
     min-width: 80px;
+    max-width: none;
+    height: auto;
+    vertical-align: middle;
+    padding: 12px 16px;
+    line-height: 1.4;
 }
 
-th:nth-child(2), td:nth-child(2) { /* 产品标题列 */
-    width: 12%;
-    max-width: 120px;
+/* 移除表头的省略样式 */
+#dataTable th {
+    overflow: visible;
+    text-overflow: clip;
 }
 
-th:nth-child(n+3), td:nth-child(n+3) { /* 其他列 */
-    width: 6%;
-    min-width: 60px;
-}
-
-/* 优化标题列的文本显示 */
-td:nth-child(2) {
-    white-space: nowrap;
+/* 保持数据单元格的省略样式 */
+#dataTable td {
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 150px;
+    white-space: nowrap;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
 }
 
-/* 添加鼠标悬停时显示完整标题的功能 */
-td:nth-child(2):hover {
-    position: relative;
+/* 可排序列的表头样式 */
+#dataTable th[data-sortable="true"] {
+    cursor: pointer;
 }
 
-td:nth-child(2):hover::after {
-    content: attr(title);
-    position: absolute;
-    left: 0;
-    top: 100%;
-    background: white;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 1000;
-    white-space: normal;
-    max-width: 300px;
-    word-wrap: break-word;
+#dataTable th[data-sortable="true"]:hover {
+    background-color: #e9ecef;
+}
+
+/* 覆盖表格单元格的默认对齐方式 */
+#dataTable td,
+#dataTable th {
+    text-align: left !important;
+}
+
+/* 移除可能存在的数字单元格特殊样式 */
+#dataTable td[data-type="number"] {
+    text-align: left !important;
+}
+
+/* 确保没有其他样式覆盖对齐方式 */
+.table td,
+.table th {
+    text-align: left !important;
 }
   
