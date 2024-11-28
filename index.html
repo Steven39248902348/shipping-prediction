@@ -13,16 +13,26 @@
             <h1>库存管理系统</h1>
             <div class="header-controls">
                 <input type="file" id="fileUpload" accept=".xlsx, .xls" style="display: none;" />
-                <button id="dynamicButton" class="primary-button">
-                    <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    导入Excel
-                </button>
+                <div class="button-group">
+                    <button id="dynamicButton" class="primary-button">
+                        <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        导入Excel
+                    </button>
+                    <button id="exportButton" class="primary-button" style="display: none;">
+                        <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M19 9l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 16V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        导出Excel
+                    </button>
+                </div>
             </div>
         </header>
 
         <div class="content-wrapper">
+            <!-- 基础设置卡片
             <div class="settings-card card">
                 <div class="card-header">
                     <h2>基础设置</h2>
@@ -37,15 +47,21 @@
                     </div>
                 </div>
             </div>
+            -->
 
+            <!-- 国家筛选卡片
             <div class="filter-card card">
                 <div class="card-header">
                     <h2>国家筛选</h2>
                 </div>
                 <div class="country-buttons" id="countryButtons">
-                    <!-- 国家按钮将通过JavaScript动态填充 -->
                 </div>
             </div>
+            -->
+
+            <!-- 保留必要的隐藏元素 -->
+            <input type="hidden" id="targetDays" value="60" />
+            <div id="countryButtons" style="display: none;"></div>
 
             <div class="data-card card">
                 <div class="card-header">
@@ -75,4 +91,5 @@
     <script src="script.js"></script>
 </body>
 </html> 
+
 
