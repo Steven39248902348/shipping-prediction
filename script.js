@@ -5,7 +5,6 @@ let columnIndexes = {};
 let targetDays = 50; // 默认目标在途库存天数
 let filteredData = null;
 let translationData = null;
-
 // 添加基础表头定义为全局变量
 const baseHeaders = [
     'ASIN',
@@ -178,7 +177,7 @@ function saveToLocalStorage(data, fileName, updateHistory = true) {
                 const estimatedDays = parseFloat(String(row['预估可售天数']).replace(/,/g, '')) || 0;
                 const avgDailySales = newRow['平均每天出单'] || calculateAverageDailySales(row);
                 const transitDays = newRow['在途库存可售天数'] || 0;
-                newRow['需要补货数量'] = Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
+                newRow['需要补货数量'] = Math.max(0, (50 - estimatedDays - transitDays) * avgDailySales);
             }
             return newRow;
         });
@@ -679,7 +678,7 @@ function updateTableContent(page) {
                     const avgDailySales = row['平均每天出单'] || calculateAverageDailySales(row);
                     const transitDays = row['在途库存可售天数'] || 0;
                     
-                    value = Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
+                    value = Math.max(0, (50 - estimatedDays - transitDays) * avgDailySales);
                     row[header] = value; // 保存计算结果
                 }
 
@@ -1003,7 +1002,7 @@ function exportToExcel() {
         // 重新计算需要补货数量
         const estimatedDays = parseFloat(String(newRow['预估可售天数']).replace(/,/g, '')) || 0;
         const transitDays = newRow['在途库存可售天数'];
-        newRow['需要补货数量'] = Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
+        newRow['需要补货数量'] = Math.max(0, (50 - estimatedDays - transitDays) * avgDailySales);
 
         // 格式化数据用于导出
         const exportRow = {};
@@ -1126,7 +1125,7 @@ function calculateReplenishmentQuantity(row) {
     const estimatedDays = parseFloat(String(row['预估可售天数']).replace(/,/g, '')) || 0;
     const avgDailySales = calculateAverageDailySales(row);
     const transitDays = calculateTransitDays(row);
-    return Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
+    return Math.max(0, (50 - estimatedDays - transitDays) * avgDailySales);
 }
 
 // 添加加载翻译文件的函数
@@ -1152,3 +1151,4 @@ function loadTranslationFile() {
             console.error('加载翻译文件失败:', error);
         });
 } 
+
