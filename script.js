@@ -2,8 +2,9 @@
 let currentData = null;
 let fileHistory = [];
 let columnIndexes = {};
-let targetDays = 60; // 默认目标在途库存天数
+let targetDays = 50; // 默认目标在途库存天数
 let filteredData = null;
+let translationData = null;
 
 // 添加基础表头定义为全局变量
 const baseHeaders = [
@@ -152,6 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hasData) {
         exportButton.style.display = 'flex';
     }
+
+    // 加载翻译文件
+    loadTranslationFile();
 });
 
 // 保存数据到localStorage
@@ -416,6 +420,17 @@ function processDataInWorker(sheet, fileName) {
                 return;
             }
 
+            // 应用翻译
+            processedData.forEach(row => {
+                if (translationData && translationData.has(row.ASIN)) {
+                    row.originalTitle = row['产品标题']; // 保存原始标题
+                    row['产品标题'] = translationData.get(row.ASIN);
+                    row.hasTranslation = true;
+                } else {
+                    row.hasTranslation = false;
+                }
+            });
+
             // 先更新数据
             currentData = processedData;
             originalData = [...processedData];
@@ -624,12 +639,17 @@ function updateTableContent(page) {
             const td = document.createElement('td');
             let value = row[header];
             
-            // 处理产品标题，显示缩略版本
-            if (header === '产品标题' && value) {
+            if (header === '产品标题') {
                 td.title = value; // 保存完整标题作为悬浮提示
+                // 如果没有翻译，添加红色样式
+                if (!row.hasTranslation) {
+                    td.style.color = '#ff4d4f';
+                    td.title = '未找到翻译: ' + value;
+                }
                 value = value.length > 20 ? value.substring(0, 20) + '...' : value;
-                td.style.textAlign = 'left'; // 文本左对齐
+                td.style.textAlign = 'left';
             }
+            
             // 处理 ASIN 列
             else if (header === 'ASIN') {
                 td.style.textAlign = 'left'; // 文本左对齐
@@ -1107,4 +1127,28 @@ function calculateReplenishmentQuantity(row) {
     const avgDailySales = calculateAverageDailySales(row);
     const transitDays = calculateTransitDays(row);
     return Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
+}
+
+// 添加加载翻译文件的函数
+function loadTranslationFile() {
+    fetch('Translation.xlsx')
+        .then(response => response.arrayBuffer())
+        .then(data => {
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+            
+            // 将数据转换为以ASIN为键的Map
+            translationData = new Map(
+                jsonData.map(row => [
+                    row['ASIN'], // 假设列名为'Asin'
+                    row['产品标题']  // 假设列名为'产品名称'
+                ])
+            );
+            
+            console.log('翻译文件加载完成，共', translationData.size, '条记录');
+        })
+        .catch(error => {
+            console.error('加载翻译文件失败:', error);
+        });
 } 
