@@ -81,6 +81,13 @@ self.onmessage = function(e) {
             totalColumns: titleRow.length
         });
 
+        // 验证是否找到任何必需的列
+        const foundColumns = Object.values(updatedColumnIndexes).filter(index => index !== -1);
+        if (foundColumns.length === 0) {
+            throw new Error('请上传符合格式的Excel表格。表格必须包含所有列：\n' + 
+                          Object.keys(updatedColumnIndexes).join('\n'));
+        }
+
         // 验证必要的列是否存在
         const requiredColumns = ['ASIN', '产品标题', '预估可售天数', '可售库存'];
         const missingColumns = requiredColumns.filter(col => updatedColumnIndexes[col] === -1);
