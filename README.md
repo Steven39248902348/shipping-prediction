@@ -29,8 +29,7 @@
 
 1. 确保以下文件存在于同一目录:
    - index.html
-   - Translation.xlsx (用于标题翻译)
-   - Warehous_Product_SKU_List.xlsx (用于SKU映射)
+   - Warehous_Product_SKU_List.xlsx (用于SKU映射和产品标题)
 2. 打开index.html文件
 3. 点击"导入Excel"按钮选择库存数据文件
 4. 系统会自动处理数据并显示在表格中:
@@ -59,7 +58,8 @@
 ### SKU映射文件(Warehous_Product_SKU_List.xlsx)要求：
 - 第一列标题必须为"仓库SKU"
 - 第二列标题必须为"ASIN"
-- 每行包含一个SKU和对应的ASIN
+- 第三列标题必须为"产品标题"
+- 每行包含一个SKU和对应的ASIN及其产品标题
 
 ## 浏览器兼容性
 
@@ -74,7 +74,6 @@
 2. 数据从第5行开始读取（前4行为表头）
 3. 历史记录最多保存最近5个文件
 4. 必须配置以下辅助文件:
-   - Translation.xlsx: 用于产品标题翻译
    - Warehous_Product_SKU_List.xlsx: 用于SKU与ASIN映射
 
 ## 依赖库
@@ -87,7 +86,6 @@
 ├── styles.css          # 样式文件
 ├── script.js           # 主要逻辑
 ├── dataWorker.js       # Web Worker 数据处理
-├── Translation.xlsx    # 翻译对照表
 └── Warehous_Product_SKU_List.xlsx  # SKU映射表
 ```
 
@@ -97,4 +95,4 @@
 
 - script.js: 包含主要业务逻辑和UI交互
 - dataWorker.js: 负责Excel数据的解析和处理
-- styles.css: 包含所有样式定义 
+- styles.css: 包含所有样式定义
