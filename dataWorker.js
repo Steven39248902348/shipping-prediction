@@ -61,6 +61,7 @@ self.onmessage = function(e) {
 
         // 更新列索引 - 使用更宽松的匹配规则
         const updatedColumnIndexes = {
+            '仓库SKU': -1,
             'ASIN': titleRow.findIndex(title => title && title.includes('ASIN')),
             '产品标题': titleRow.findIndex(title => title && (title.includes('标题') || title.includes('名称'))),
             '账号': titleRow.findIndex(title => title && title.includes('账号')),
