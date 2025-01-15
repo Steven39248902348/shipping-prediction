@@ -82,11 +82,14 @@
 - XLSX.js (v0.18.5) - 用于Excel文件处理
 
 ## 文件结构
-├── index.html # 主页面
-├── styles.css # 样式文件
-├── script.js # 主要逻辑
-├── dataWorker.js # Web Worker 数据处理
-└── Translation.xlsx # 翻译对照表
+```
+├── index.html          # 主页面
+├── styles.css          # 样式文件
+├── script.js           # 主要逻辑
+├── dataWorker.js       # Web Worker 数据处理
+├── Translation.xlsx    # 翻译对照表
+└── Warehous_Product_SKU_List.xlsx  # SKU映射表
+```
 
 ## 开发者说明
 
