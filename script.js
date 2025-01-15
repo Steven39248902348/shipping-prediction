@@ -7,6 +7,7 @@ let filteredData = null;
 let translationData = null;
 // 添加基础表头定义为全局变量
 const baseHeaders = [
+    '仓库SKU',
     'ASIN',
     '产品标题',
     '账号',
@@ -59,6 +60,9 @@ const itemsPerPage = 20; // 移到全局作用域
 // 在文件开头添加导出按钮引用
 const exportButton = document.getElementById('exportButton');
 
+// 添加全局变量
+let skuMappingData = null;
+
 function showPage(page) {
     if (!workingData) return;
     
@@ -104,6 +108,8 @@ function showPage(page) {
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedData();
     createFileHistoryUI();
+    loadTranslationFile();
+    loadSkuMappingFile();
     
     // 添加目标天数变更监听
     const targetDaysInput = document.getElementById('targetDays');
@@ -419,10 +425,17 @@ function processDataInWorker(sheet, fileName) {
                 return;
             }
 
-            // 应用翻译
+            // 添加SKU数据
             processedData.forEach(row => {
+                if (skuMappingData && skuMappingData.has(row.ASIN)) {
+                    row['仓库SKU'] = skuMappingData.get(row.ASIN);
+                } else {
+                    row['仓库SKU'] = '-';
+                }
+                
+                // 应用翻译
                 if (translationData && translationData.has(row.ASIN)) {
-                    row.originalTitle = row['产品标题']; // 保存原始标题
+                    row.originalTitle = row['产品标题'];
                     row['产品标题'] = translationData.get(row.ASIN);
                     row.hasTranslation = true;
                 } else {
@@ -1150,5 +1163,49 @@ function loadTranslationFile() {
         .catch(error => {
             console.error('加载翻译文件失败:', error);
         });
-} 
+}
+
+// 添加加载SKU映射文件的函数
+function loadSkuMappingFile() {
+    fetch('Warehous_Product_SKU_List.xlsx')
+        .then(response => response.arrayBuffer())
+        .then(data => {
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+            
+            // 创建ASIN到SKU的映射
+            skuMappingData = new Map(
+                jsonData.map(row => [
+                    row['ASIN'],
+                    row['仓库SKU']
+                ])
+            );
+            
+            console.log('SKU映射文件加载完成，共', skuMappingData.size, '条记录');
+            
+            // 如果当前有数据，更新显示
+            if (currentData) {
+                updateSkuData();
+                displayPreview(currentData);
+            }
+        })
+        .catch(error => {
+            console.error('加载SKU映射文件失败:', error);
+        });
+}
+
+// 添加更新SKU数据的函数
+function updateSkuData() {
+    if (!currentData || !skuMappingData) return;
+    
+    currentData.forEach(row => {
+        if (row.ASIN && skuMappingData.has(row.ASIN)) {
+            row['仓库SKU'] = skuMappingData.get(row.ASIN);
+        } else {
+            row['仓库SKU'] = '-';
+        }
+    });
+}
+
 
