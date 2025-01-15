@@ -108,7 +108,6 @@ function showPage(page) {
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedData();
     createFileHistoryUI();
-    loadTranslationFile();
     loadSkuMappingFile();
     
     // 添加目标天数变更监听
@@ -425,20 +424,15 @@ function processDataInWorker(sheet, fileName) {
                 return;
             }
 
-            // 添加SKU数据
+            // 添加SKU和标题数据
             processedData.forEach(row => {
                 if (skuMappingData && skuMappingData.has(row.ASIN)) {
-                    row['仓库SKU'] = skuMappingData.get(row.ASIN);
+                    const mappingData = skuMappingData.get(row.ASIN);
+                    row['仓库SKU'] = mappingData.sku || '-';
+                    row['产品标题'] = mappingData.title || row['产品标题'];
+                    row.hasTranslation = !!mappingData.title;
                 } else {
                     row['仓库SKU'] = '-';
-                }
-                
-                // 应用翻译
-                if (translationData && translationData.has(row.ASIN)) {
-                    row.originalTitle = row['产品标题'];
-                    row['产品标题'] = translationData.get(row.ASIN);
-                    row.hasTranslation = true;
-                } else {
                     row.hasTranslation = false;
                 }
             });
@@ -1141,31 +1135,7 @@ function calculateReplenishmentQuantity(row) {
     return Math.max(0, (100 - estimatedDays - transitDays) * avgDailySales);
 }
 
-// 添加加载翻译文件的函数
-function loadTranslationFile() {
-    fetch('Translation.xlsx')
-        .then(response => response.arrayBuffer())
-        .then(data => {
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
-            
-            // 将数据转换为以ASIN为键的Map
-            translationData = new Map(
-                jsonData.map(row => [
-                    row['ASIN'], // 假设列名为'Asin'
-                    row['产品标题']  // 假设列名为'产品名称'
-                ])
-            );
-            
-            console.log('翻译文件加载完成，共', translationData.size, '条记录');
-        })
-        .catch(error => {
-            console.error('加载翻译文件失败:', error);
-        });
-}
-
-// 添加加载SKU映射文件的函数
+// 修改 loadSkuMappingFile 函数来同时处理SKU和标题映射
 function loadSkuMappingFile() {
     fetch('Warehous_Product_SKU_List.xlsx')
         .then(response => response.arrayBuffer())
@@ -1174,19 +1144,22 @@ function loadSkuMappingFile() {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
             
-            // 创建ASIN到SKU的映射
+            // 创建ASIN到SKU和标题的映射
             skuMappingData = new Map(
                 jsonData.map(row => [
                     row['ASIN'],
-                    row['仓库SKU']
+                    {
+                        sku: row['仓库SKU'],
+                        title: row['产品标题'] // 添加标题映射
+                    }
                 ])
             );
             
-            console.log('SKU映射文件加载完成，共', skuMappingData.size, '条记录');
+            console.log('SKU和标题映射文件加载完成，共', skuMappingData.size, '条记录');
             
             // 如果当前有数据，更新显示
             if (currentData) {
-                updateSkuData();
+                updateSkuAndTitleData();
                 displayPreview(currentData);
             }
         })
@@ -1195,17 +1168,22 @@ function loadSkuMappingFile() {
         });
 }
 
-// 添加更新SKU数据的函数
-function updateSkuData() {
+// 修改更新数据的函数
+function updateSkuAndTitleData() {
     if (!currentData || !skuMappingData) return;
     
     currentData.forEach(row => {
         if (row.ASIN && skuMappingData.has(row.ASIN)) {
-            row['仓库SKU'] = skuMappingData.get(row.ASIN);
+            const mappingData = skuMappingData.get(row.ASIN);
+            row['仓库SKU'] = mappingData.sku || '-';
+            row['产品标题'] = mappingData.title || row['产品标题']; // 使用映射文件中的标题
+            row.hasTranslation = !!mappingData.title; // 标记是否有标题映射
         } else {
             row['仓库SKU'] = '-';
+            row.hasTranslation = false;
         }
     });
 }
+
 
 
