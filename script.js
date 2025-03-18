@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 添加input事件监听，实时响应变化
     targetDaysInput.addEventListener('input', () => {
-        const newValue = parseInt(targetDaysInput.value) || 60;
+        const newValue = parseInt(targetDaysInput.value) || targetDays;
         // 限制输入范围
         if (newValue < 1) targetDaysInput.value = 1;
         if (newValue > 180) targetDaysInput.value = 180;
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 修改失焦事件监听，只保存目标天数设置，不保存数据
     targetDaysInput.addEventListener('blur', () => {
-        targetDays = parseInt(targetDaysInput.value) || 60;
+        targetDays = parseInt(targetDaysInput.value) || targetDays;
         localStorage.setItem('targetDays', targetDays.toString());
     });
 
@@ -182,7 +182,7 @@ function saveToLocalStorage(data, fileName, updateHistory = true) {
                 const estimatedDays = parseFloat(String(row['预估可售天数']).replace(/,/g, '')) || 0;
                 const avgDailySales = newRow['平均每天出单'] || calculateAverageDailySales(row);
                 const transitDays = newRow['在途库存可售天数'] || 0;
-                newRow['需要补货数量'] = Math.max(0, (60 - estimatedDays - transitDays) * avgDailySales);
+                newRow['需要补货数量'] = Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
             }
             return newRow;
         });
@@ -685,7 +685,7 @@ function updateTableContent(page) {
                     const avgDailySales = row['平均每天出单'] || calculateAverageDailySales(row);
                     const transitDays = row['在途库存可售天数'] || 0;
                     
-                    value = Math.max(0, (60 - estimatedDays - transitDays) * avgDailySales);
+                    value = Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
                     row[header] = value; // 保存计算结果
                 }
 
@@ -698,7 +698,7 @@ function updateTableContent(page) {
                     // 添加预警颜色
                     if (value < 30) {
                         td.style.color = '#ff4d4f'; // 红色预警
-                    } else if (value < 60) {
+                    } else if (value < 50) {
                         td.style.color = '#faad14'; // 橙色预警
                     }
                 } else if (header === '需要补货数量') {
@@ -1009,7 +1009,7 @@ function exportToExcel() {
         // 重新计算需要补货数量
         const estimatedDays = parseFloat(String(newRow['预估可售天数']).replace(/,/g, '')) || 0;
         const transitDays = newRow['在途库存可售天数'];
-        newRow['需要补货数量'] = Math.max(0, (60 - estimatedDays - transitDays) * avgDailySales);
+        newRow['需要补货数量'] = Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
 
         // 格式化数据用于导出
         const exportRow = {};
@@ -1074,7 +1074,7 @@ function exportToExcel() {
             
             if (value < 30) {
                 ws[estimatedDaysCell].s = { font: { color: { rgb: "FF0000" } } };
-            } else if (value < 60) {
+            } else if (value < 50) {
                 ws[estimatedDaysCell].s = { font: { color: { rgb: "FFA500" } } };
             }
         }
@@ -1132,7 +1132,7 @@ function calculateReplenishmentQuantity(row) {
     const estimatedDays = parseFloat(String(row['预估可售天数']).replace(/,/g, '')) || 0;
     const avgDailySales = calculateAverageDailySales(row);
     const transitDays = calculateTransitDays(row);
-    return Math.max(0, (60 - estimatedDays - transitDays) * avgDailySales);
+    return Math.max(0, (targetDays - estimatedDays - transitDays) * avgDailySales);
 }
 
 // 修改 loadSkuMappingFile 函数来同时处理SKU和标题映射
